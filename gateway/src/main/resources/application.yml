@@ -53,9 +53,9 @@ logging:
   pattern:
     level: "[${spring.application.name:-},%X{traceId:-},%X{spanId:-}] "
   include-application-name: false
-  level:
-    reactor.netty: DEBUG
-    org.springframework.cloud.gateway.handler.predicate: trace
+  #level:
+    #reactor.netty: DEBUG
+    #org.springframework.cloud.gateway.handler.predicate: trace
 
     #io.micrometer: TRACE
 management:

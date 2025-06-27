@@ -16,7 +16,7 @@ public class GameEventHandler {
     private final GameService gameService;
 
     @PulsarListener(topics = "attempts.topic",subscriptionName = "gamification", subscriptionType = SubscriptionType.Key_Shared)
-    void handleMultiplicationSolved(final ChallengeSolvedEvent event) {
+    public void handleMultiplicationSolved(final ChallengeSolvedEvent event) {
         log.info("Challenge Solved Event received: {}", event.getAttemptId());
         try {
             gameService.newAttemptForUser(event);
