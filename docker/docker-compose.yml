@@ -96,7 +96,8 @@ services:
       - 8080:8080
     command: 'bin/pulsar standalone'
     healthcheck:
-      test: ["CMD","curl","-f","http://localhost:8080/admin/clusters"]
+      #test: ["CMD","curl","-f","http://localhost:8080/admin/v2/clusters"]
+      test: ["CMD-SHELL", "curl --fail http://localhost:8080/admin/v2/clusters || exit 1"]
       interval: 10s
       timeout: 10s
       retries: 3
