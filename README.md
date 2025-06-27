@@ -37,7 +37,16 @@ In case you want to learn how to build the images, keep reading the instructions
 
 ### Building the images yourself
 
-First, build the application images with:
+First, build the application images with Dockerfile:
+
+```bash
+multiplication$ docker build -t  multiplication:0.0.1-SNAPSHOT .
+gamification$ docker build -t  gamification:0.0.1-SNAPSHOT .
+gateway$ docker build -t  gateway:0.0.1-SNAPSHOT .
+logs$ docker build -t  logs:0.0.1-SNAPSHOT .
+```
+
+or BuildPack
 
 ```bash
 multiplication$ ./mvnw spring-boot:build-image
@@ -46,7 +55,7 @@ gateway$ ./mvnw spring-boot:build-image
 logs$ ./mvnw spring-boot:build-image
 ```
 
-or
+or Jib
 
 ```bash
 multiplication$ mvn compile jib:dockerBuild

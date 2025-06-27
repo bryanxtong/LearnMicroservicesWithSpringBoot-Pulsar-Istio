@@ -5,10 +5,6 @@ spring:
   application:
     name: gateway
   cloud:
-    loadbalancer:
-      ribbon:
-        # Not needed since we excluded the dependency
-        enabled: false
     consul:
       host: ${SPRING_CLOUD_CONSUL_HOST:localhost}
       port: 8500
@@ -17,32 +13,34 @@ spring:
         # Get only services that are passing the health check
         query-passing: true
     gateway:
-      routes:
-        - id: multiplication
-          uri: lb://multiplication/
-          predicates:
-            - Path=/challenges/**,/attempts/**,/users/**
-        - id: gamification
-          uri: lb://gamification/
-          predicates:
-            - Path=/leaders
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowedOrigins: "http://localhost:3000"
-            allowedHeaders:
-              - "*"
-            allowedMethods:
-              - "GET"
-              - "POST"
-              - "OPTIONS"
-      default-filters:
-        - name: Retry
-          args:
-            retries: 3
-            methods: GET,POST
-      observability:
-        enabled: true
+      server:
+        webflux:
+          routes:
+            - id: multiplication
+              uri: lb://multiplication/
+              predicates:
+                - Path=/challenges/**,/attempts/**,/users/**
+            - id: gamification
+              uri: lb://gamification/
+              predicates:
+                - Path=/leaders
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOrigins: "http://localhost:3000"
+                allowedHeaders:
+                  - "*"
+                allowedMethods:
+                  - "GET"
+                  - "POST"
+                  - "OPTIONS"
+          default-filters:
+            - name: Retry
+              args:
+                retries: 3
+                methods: GET,POST
+          observability:
+            enabled: true
     pulsar:
       admin:
         service-url: http://${SPRING_CLOUD_PULSAR_HOST:localhost}:8080
@@ -85,15 +83,19 @@ spring:
       on-profile: docker
   cloud:
     gateway:
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowedOrigins: "http://challenges-frontend:3000"
-            allowedHeaders:
-              - "*"
-            allowedMethods:
-              - "GET"
-              - "POST"
-              - "OPTIONS"
+      server:
+        webflux:
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOrigins:
+                 -  "http://challenges-frontend:3000"
+                 -  "http://localhost:3000"
+                allowedHeaders:
+                  - "*"
+                allowedMethods:
+                  - "GET"
+                  - "POST"
+                  - "OPTIONS"
 
 

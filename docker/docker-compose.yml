@@ -80,7 +80,7 @@ services:
     networks:
       - microservices
   consul-dev:
-    image: hashicorp/consul:1.19.0
+    image: hashicorp/consul:1.21.0
     container_name: consul
     ports:
       - '8500:8500'
@@ -89,7 +89,7 @@ services:
     networks:
       - microservices
   pulsar:
-    image: 'apachepulsar/pulsar:3.3.1'
+    image: 'apachepulsar/pulsar:4.0.5'
     container_name: pulsar
     ports:
       - 6650:6650
