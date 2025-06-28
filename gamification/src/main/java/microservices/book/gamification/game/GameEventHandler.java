@@ -2,6 +2,7 @@ package microservices.book.gamification.game;
 
 import microservices.book.event.challenge.ChallengeSolvedEvent;
 import org.apache.pulsar.client.api.SubscriptionType;
+import org.springframework.pulsar.annotation.EnablePulsar;
 import org.springframework.pulsar.annotation.PulsarListener;
 import org.springframework.stereotype.Service;
 
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 @Service
+@EnablePulsar
 public class GameEventHandler {
 
     private final GameService gameService;

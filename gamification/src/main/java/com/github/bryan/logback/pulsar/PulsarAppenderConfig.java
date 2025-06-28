@@ -53,17 +53,21 @@ public abstract class PulsarAppenderConfig<E> extends UnsynchronizedAppenderBase
         }else{
             //used in docker-compose to create the partitioned topic automatically in default namespace
             if(adminHttpUrl!= null){
+                String topicName = "persistent://public/default/"+ topic;
                 PulsarAdmin pulsarAdmin = null;
                 try {
                     pulsarAdmin = new PulsarAdminImpl(adminHttpUrl, new ClientConfigurationData(),null);
                     List<String> topicList = pulsarAdmin.topics().getPartitionedTopicList("public/default");
-                    if(null != topicList && !topicList.contains("persistent://public/default/"+ topic)){
-                        pulsarAdmin.topics().createPartitionedTopic("persistent://public/default/"+ topic, 4);
+                    if(null != topicList && !topicList.contains(topicName)){
+                        pulsarAdmin.topics().createPartitionedTopic(topicName, 4);
                     }
                 } catch (PulsarClientException e) {
                     throw new RuntimeException(e);
                 } catch (PulsarAdminException e) {
-                    throw new RuntimeException(e);
+                    if (!(e instanceof PulsarAdminException.ConflictException)) {
+                        throw new RuntimeException(e);
+                    }
+                    System.out.println("Topic already exists: " + topicName);
                 }finally {
                     if(null != pulsarAdmin){
                         pulsarAdmin.close();
