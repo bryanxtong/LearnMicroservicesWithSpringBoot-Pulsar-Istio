@@ -1,6 +1,6 @@
 # Learn Microservices with Spring Boot 3 - (Spring Cloud and Pulsar）
 This repository contains the source code of the practical use case described in the book [Learn Microservices with Spring Boot 3 (3rd Edition)](https://link.springer.com/book/10.1007/978-1-4842-9757-5).
-And I made some changes and add pulsar logs appender for processing logs as well as spring pulsar support for event driven messages processing to replace reabbitmq.
+And I made some changes and add pulsar logs appender for processing logs as well as spring pulsar support for event driven messages processing to replace rabbitmq.
 
 ## Features
 
