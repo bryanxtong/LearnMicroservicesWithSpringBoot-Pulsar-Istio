@@ -1,13 +1,23 @@
 server:
   port: 8000
-
 spring:
   application:
     name: gateway
+  config:
+    import: 'optional:consul:'
   cloud:
     consul:
       host: ${SPRING_CLOUD_CONSUL_HOST:localhost}
       port: 8500
+      config:
+        format: YAML
+        default-context: application
+        prefixes:
+          - config
+        fail-fast: false #Fail fast is set and there was an error reading configuration from consul.
+        watch:
+          delay: 3000
+          enabled: true
       enabled: true
       discovery:
         # Get only services that are passing the health check
@@ -50,6 +60,10 @@ spring:
     context-propagation: auto
 ##working with default logback configuration for distributed tracing
 logging:
+  ##During the process of creating the pulsar lazy producer in appender, there should no logs in the pulsar client code to append logs which would lead to deadlock
+  ##Disable logs for pulsar client as a temp solution
+  level:
+    org.apache.pulsar.client.impl: OFF
   pattern:
     level: "[${spring.application.name:-},%X{traceId:-},%X{spanId:-}] "
   include-application-name: false
@@ -62,19 +76,10 @@ management:
   tracing:
     sampling:
       probability: 1.0
-    enabled: true
-  #endpoint:
-    #gateway:
-      #enabled: true
-  #endpoints:
-    #web:
-      #exposure:
-        #include: health, gateway
-    #propagation:
-      #type: w3c
-  zipkin:
-    tracing:
-      endpoint: http://${SPRING_CLOUD_ZIPKIN_HOST:localhost}:9411/api/v2/spans
+    export:
+      enabled: true
+      zipkin:
+        endpoint: http://${SPRING_CLOUD_ZIPKIN_HOST:localhost}:9411/api/v2/spans
 
 ---
 spring:
