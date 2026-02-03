@@ -14,10 +14,11 @@ spring:
         default-context: application
         prefixes:
           - config
-        fail-fast: false #Fail fast is set and there was an error reading configuration from consul.
+        fail-fast: true
         watch:
           delay: 3000
           enabled: true
+          wait-time: 5 #让 HTTP 超时 > Consul wait 时间
       enabled: true
       discovery:
         # Get only services that are passing the health check
