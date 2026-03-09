@@ -10,7 +10,7 @@ This project demonstrates a cloud-native microservices architecture using Kubern
 
 ## Technology Stack
 
-- **Spring Boot 4.0.2** with Spring Cloud 2025.1.0
+- **Spring Boot 4.0.2** with Spring Cloud 2025.1.1
 - **Kubernetes** for container orchestration
 - **Istio** service mesh for traffic management, security, and observability
 - **Apache Pulsar** for event-driven messaging
