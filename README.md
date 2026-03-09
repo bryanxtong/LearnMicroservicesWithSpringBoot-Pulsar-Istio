@@ -273,7 +273,7 @@ Access the API at: `http://<EXTERNAL-IP>/challenges`
 - Attempts API: `http://localhost/attempts`
 - Users API: `http://localhost/users`
 - Leaderboard API: `http://localhost/leaders`
-- Zipkin UI: Port-forward to access: `kubectl port-forward -n microservices svc/zipkin 9411:9411`
+- Zipkin UI: `http://localhost/zipkin` (via Istio Gateway)
 
 ### Troubleshooting
 
