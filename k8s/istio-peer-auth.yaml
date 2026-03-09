@@ -1,0 +1,44 @@
+---
+# Enable strict mTLS for all services in microservices namespace
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: microservices
+spec:
+  mtls:
+    mode: STRICT
+
+---
+# Allow traffic to Kubernetes API without Istio TLS wrapping
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: kubernetes-api
+  namespace: microservices
+spec:
+  host: "kubernetes.default.svc.cluster.local"
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+  exportTo:
+  - "*"
+
+---
+# Register Kubernetes API as external service
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: kubernetes-api
+  namespace: microservices
+spec:
+  hosts:
+  - kubernetes.default.svc.cluster.local
+  ports:
+  - number: 443
+    name: https
+    protocol: HTTPS
+  location: MESH_EXTERNAL
+  resolution: DNS
+  exportTo:
+  - "*"

@@ -1,0 +1,22 @@
+# Patch for Istio Ingress Gateway to use hostPort
+# This makes Istio work like nginx-ingress in kind cluster
+# Apply after installing Istio: kubectl apply -f istio-gateway-hostport.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: istio-ingressgateway
+  namespace: istio-system
+spec:
+  template:
+    spec:
+      containers:
+      - name: istio-proxy
+        ports:
+        - containerPort: 15021
+          protocol: TCP
+        - containerPort: 8080
+          hostPort: 80      # Bind to host port 80
+          protocol: TCP
+        - containerPort: 8443
+          hostPort: 443     # Bind to host port 443
+          protocol: TCP

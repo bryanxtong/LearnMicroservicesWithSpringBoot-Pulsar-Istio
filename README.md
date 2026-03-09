@@ -1,91 +1,304 @@
-# Learn Microservices with Spring Boot 3 - (Spring Cloud and Pulsar）
-This repository contains the source code of the practical use case described in the book [Learn Microservices with Spring Boot 3 (3rd Edition)](https://link.springer.com/book/10.1007/978-1-4842-9757-5).
-And I made some changes and add pulsar logs appender for processing logs as well as spring pulsar support for event driven messages processing to replace rabbitmq.
+# Learn Microservices with Spring Boot 3 - Kubernetes and Istio Edition
 
-## Features
+This repository demonstrates a modern microservices architecture using Spring Boot 3, Kubernetes, and Istio service mesh. It includes centralized logging with Apache Pulsar and distributed tracing with Zipkin.
 
-The figure below shows a high-level overview of the final version of our system.
+## Architecture Overview
+
+This project demonstrates a cloud-native microservices architecture using Kubernetes and Istio service mesh.
 
 ![Logical View - Chapter 8 (Final)](resources/microservice_patterns-Config-Server-1.png)
 
-The main concepts included in this project are:
+## Technology Stack
 
-* Why do we need Centralized Logs and Distributed tracing?
-* Why would I create Docker images for my applications?
-* Building a simple logger application with Spring Boot and Pulsar.
-* Event Driven message processing with spring pulsar
-* Distributed traces with Micrometer.
-* Building Docker images for Spring Boot applications with Cloud Native Buildpacks.
-* Container Platforms, Application Platforms, and Cloud Services.
+- **Spring Boot 4.0.2** with Spring Cloud 2025.1.0
+- **Kubernetes** for container orchestration
+- **Istio** service mesh for traffic management, security, and observability
+- **Apache Pulsar** for event-driven messaging
+- **Spring Cloud Kubernetes** for ConfigMap integration
+- **Zipkin** for distributed tracing
+- **H2 Database** for data persistence
+- **React** frontend application
 
-## Running the app
+## Key Architecture Components
 
-### Building the images yourself
+| Component | Implementation |
+|-----------|----------------|
+| Service Discovery | Kubernetes Service + Istio |
+| Configuration Management | Kubernetes ConfigMap + Spring Cloud Kubernetes |
+| API Gateway | Istio Ingress Gateway |
+| Load Balancing | Istio Envoy Sidecar |
+| Circuit Breaker | Istio DestinationRule |
+| Distributed Tracing | Istio + Zipkin |
+| Message Queue | Apache Pulsar |
+| Security | Istio mTLS (mutual TLS) |
 
-First, build the application images with Dockerfile:
+## Features
 
+* Kubernetes-native microservices deployment
+* Istio service mesh for traffic management
+* Centralized logging with Pulsar
+* Event-driven architecture with Spring Pulsar
+* Distributed tracing with Istio and Zipkin
+* Container orchestration with Kubernetes
+* Service mesh capabilities (traffic routing, load balancing, circuit breaking)
+* Strict mTLS for inter-service communication
+
+## Microservices
+
+1. **multiplication** - Multiplication challenge service (port 8080)
+2. **gamification** - Gamification and leaderboard service (port 8081)
+3. **logs** - Centralized log processing service (port 8580)
+
+## Running on Kubernetes with Istio
+
+### Prerequisites
+
+- kind (Kubernetes in Docker)
+- kubectl CLI tool
+- istioctl CLI tool
+- Docker
+- Maven 3.8+
+- JDK 17+
+- Node.js 16+ (for frontend)
+
+### Step 1: Create Kubernetes Cluster
+
+#### Using kind (Recommended for local development)
+
+1. Install kind if not already installed:
 ```bash
-multiplication$ docker build -t  multiplication:0.0.1-SNAPSHOT .
-gamification$ docker build -t  gamification:0.0.1-SNAPSHOT .
-gateway$ docker build -t  gateway:0.0.1-SNAPSHOT .
-logs$ docker build -t  logs:0.0.1-SNAPSHOT .
+# Windows (using Chocolatey)
+choco install kind
+
+# macOS
+brew install kind
+
+# Linux
+curl -Lo ./kind https://kind.sigs.k8s.io/dl/latest/kind-linux-amd64
+chmod +x ./kind
+sudo mv ./kind /usr/local/bin/kind
 ```
 
-or BuildPack
-
+2. Create the cluster:
 ```bash
-multiplication$ ./mvnw spring-boot:build-image
-gamification$ ./mvnw spring-boot:build-image
-gateway$ ./mvnw spring-boot:build-image
-logs$ ./mvnw spring-boot:build-image
+kind create cluster --config kind-config.yaml
 ```
 
-or Jib
-
+3. Verify cluster is running:
 ```bash
-multiplication$ mvn compile jib:dockerBuild
-gamification$ mvn compile jib:dockerBuild
-gateway$ mvn compile jib:dockerBuild
-logs$ mvn compile jib:dockerBuild
+kubectl cluster-info
+kubectl get nodes
 ```
 
-Then, build the consul importer from the `docker/consul` folder:
+### Step 2: Install Istio
 
+1. Download and install istioctl:
 ```bash
-$ consul agent -node=learnmicro -dev
-docker/consul$ consul kv export config/ > consul-kv-docker.json
-docker/consul$ docker build -t consul-importer:1.0 .
+# macOS/Linux
+curl -L https://istio.io/downloadIstio | sh -
+cd istio-*
+export PATH=$PWD/bin:$PATH
+
+# Windows: Download from https://github.com/istio/istio/releases
 ```
 
-And the UI server (first you have to build it with `npm run build`):
-
+2. Install Istio with default profile:
 ```bash
-challenges-frontend$ npm install
-challenges-frontend$ npm run build
-challenges-frontend$ docker build -t challenges-frontend:1.0 .
-```
-It is only necessary for docker deployment of frontend app
-add items to hosts C:\Windows\System32\drivers\etc\hosts
-    127.0.0.1	    challenges-frontend
-
-Once you have all the images ready, run:
-
-```bash
-docker$ docker-compose up
+istioctl install --set profile=default -y
 ```
 
-See the figure below for a diagram showing the container view.
-
-![Container View](resources/microservice_patterns-View-Containers.png)
-
-Once the backend and the frontend are started, you can navigate to `http://localhost:3000` in your browser and start resolving multiplication challenges.
-
-## Playing with Docker Compose
-
-After the system is up and running, you can quickly scale up and down instances of both Multiplication and Gamification services. For example, you can run:
-
+3. Configure Istio Gateway for kind (hostPort mode):
 ```bash
-docker$ docker-compose up --scale multiplication=2 --scale gamification=2
+# Patch Istio Gateway to use hostPort
+kubectl patch deployment istio-ingressgateway -n istio-system --type=json -p='[{"op":"replace","path":"/spec/template/spec/containers/0/ports","value":[{"containerPort":15021,"protocol":"TCP"},{"containerPort":8080,"hostPort":80,"protocol":"TCP"},{"containerPort":8443,"hostPort":443,"protocol":"TCP"}]}]'
+
+# Change Service to ClusterIP
+kubectl patch svc istio-ingressgateway -n istio-system -p '{"spec":{"type":"ClusterIP"}}'
 ```
 
-And you'll get two instances of each of these services with proper Load Balancing and Service Discovery.
+4. Wait for Istio to be ready:
+```bash
+kubectl rollout status deployment/istio-ingressgateway -n istio-system
+```
+
+5. Create namespace with Istio injection enabled:
+```bash
+kubectl apply -f k8s/namespace.yaml
+```
+
+### Step 3: Build Images
+
+Build Docker images for all services:
+
+```bash
+# Build JAR files
+cd multiplication && mvn clean package -DskipTests
+cd ../gamification && mvn clean package -DskipTests
+cd ../logs && mvn clean package -DskipTests
+cd ..
+
+# Build Docker images
+cd multiplication && docker build -t multiplication:0.0.1-SNAPSHOT .
+cd ../gamification && docker build -t gamification:0.0.1-SNAPSHOT .
+cd ../logs && docker build -t logs:0.0.1-SNAPSHOT .
+cd ..
+
+# Build frontend
+cd challenges-frontend
+npm install
+npm run build
+docker build -t challenges-frontend:1.0 .
+cd ..
+```
+
+### Step 4: Load Images to kind (skip if using Docker Desktop)
+
+```bash
+kind load docker-image multiplication:0.0.1-SNAPSHOT
+kind load docker-image gamification:0.0.1-SNAPSHOT
+kind load docker-image logs:0.0.1-SNAPSHOT
+kind load docker-image challenges-frontend:1.0
+```
+
+### Step 5: Deploy to Kubernetes
+
+```bash
+# Create namespace first
+kubectl apply -f k8s/namespace.yaml
+
+# Deploy RBAC for ConfigMap access
+kubectl apply -f k8s/rbac.yaml
+
+# Deploy infrastructure services
+kubectl apply -f k8s/pulsar-deployment.yaml
+kubectl apply -f k8s/zipkin-deployment.yaml
+
+# Deploy microservices
+kubectl apply -f k8s/multiplication-deployment.yaml
+kubectl apply -f k8s/gamification-deployment.yaml
+kubectl apply -f k8s/logs-deployment.yaml
+kubectl apply -f k8s/challenges-frontend-deployment.yaml
+
+# Deploy Istio configurations
+kubectl apply -f k8s/istio-gateway.yaml
+kubectl apply -f k8s/istio-destination-rules.yaml
+kubectl apply -f k8s/istio-peer-auth.yaml
+```
+
+### Step 6: Verify Deployment
+
+```bash
+# Check all pods are running
+kubectl get pods -n microservices
+
+# Check services
+kubectl get svc -n microservices
+
+# Check Istio Gateway
+kubectl get gateway -n microservices
+kubectl get virtualservice -n microservices
+```
+
+### Access the Application
+
+#### For kind cluster:
+Access the application at: `http://localhost`
+
+#### For Docker Desktop Kubernetes:
+Get the Istio Ingress Gateway external IP:
+
+```bash
+kubectl get svc istio-ingressgateway -n istio-system
+```
+
+Access the API at: `http://<EXTERNAL-IP>/challenges`
+
+### API Endpoints
+
+- Frontend: `http://localhost/`
+- Challenges API: `http://localhost/challenges`
+- Attempts API: `http://localhost/attempts`
+- Users API: `http://localhost/users`
+- Leaderboard API: `http://localhost/leaders`
+- Zipkin UI: Port-forward to access: `kubectl port-forward -n microservices svc/zipkin 9411:9411`
+
+### Troubleshooting
+
+**Pods stuck in ImagePullBackOff:**
+- For kind: Make sure you loaded images with `kind load docker-image`
+- For Docker Desktop: Images should be available automatically
+
+**Cannot access http://localhost:**
+- Verify Istio Gateway is using hostPort: `kubectl get pod -n istio-system -o yaml | grep hostPort`
+- Check if port 80 is already in use: `netstat -ano | findstr :80` (Windows) or `lsof -i :80` (macOS/Linux)
+
+**Pods not starting or stuck in Init:**
+- Check logs: `kubectl logs -n microservices <pod-name> -c <container-name>`
+- Check events: `kubectl describe pod -n microservices <pod-name>`
+- Verify RBAC permissions: `kubectl get role,rolebinding -n microservices`
+
+**ConfigMap not loading:**
+- Verify RBAC is applied: `kubectl apply -f k8s/rbac.yaml`
+- Check ConfigMap exists: `kubectl get configmap -n microservices`
+- Check application logs for "PropertySource" or "ConfigMap" messages
+
+**Application startup blocking (73+ seconds):**
+- This was caused by SSL handshake errors when accessing Kubernetes API
+- Fixed by applying `k8s/istio-peer-auth.yaml` which configures Istio to allow K8s API access
+- Verify the fix: `kubectl get peerauthentication,destinationrule,serviceentry -n microservices`
+
+### Clean Up
+
+```bash
+# Delete all resources
+kubectl delete namespace microservices
+
+# Delete cluster (kind only)
+kind delete cluster --name kind
+
+# Uninstall Istio
+istioctl uninstall --purge -y
+```
+
+## Project Structure
+
+```
+├── multiplication/          # Multiplication challenge microservice
+├── gamification/           # Gamification microservice
+├── logs/                   # Log processing microservice
+├── challenges-frontend/    # Frontend application
+└── k8s/                    # Kubernetes and Istio configurations
+    ├── namespace.yaml                    # Namespace with Istio injection
+    ├── rbac.yaml                         # RBAC for ConfigMap access
+    ├── multiplication-deployment.yaml    # Multiplication service
+    ├── gamification-deployment.yaml      # Gamification service
+    ├── logs-deployment.yaml              # Logs service
+    ├── challenges-frontend-deployment.yaml # Frontend
+    ├── pulsar-deployment.yaml            # Pulsar messaging
+    ├── zipkin-deployment.yaml            # Distributed tracing
+    ├── istio-gateway.yaml                # Istio Ingress Gateway
+    ├── istio-destination-rules.yaml      # Load balancing rules
+    └── istio-peer-auth.yaml              # mTLS and K8s API access
+```
+
+## Configuration Management
+- Each microservice has a ConfigMap containing its `application.properties`
+- Spring Cloud Kubernetes automatically loads ConfigMap as PropertySource
+- ConfigMap changes can trigger application reload (if enabled)
+- RBAC permissions are required for pods to access ConfigMaps
+
+## Key Kubernetes Resources
+
+1. **namespace.yaml** - Creates `microservices` namespace with Istio sidecar injection enabled
+2. **rbac.yaml** - Grants default ServiceAccount permissions to read ConfigMaps and Secrets
+3. **istio-peer-auth.yaml** - Configures strict mTLS between services and allows access to Kubernetes API
+4. **istio-gateway.yaml** - Defines Istio Ingress Gateway and VirtualServices for routing
+5. **istio-destination-rules.yaml** - Configures load balancing and connection pooling
+
+## Development
+
+This project is designed to run on Kubernetes with Istio service mesh. For local development, use kind (Kubernetes in Docker).
+
+## License
+
+This project is based on the book "Learn Microservices with Spring Boot 3" and demonstrates Kubernetes and Istio integration.

@@ -1,0 +1,30 @@
+---
+# Role for reading ConfigMaps
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: microservices-role
+  namespace: microservices
+rules:
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "list", "watch"]
+
+---
+# RoleBinding to bind the role to the default service account
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: microservices-rolebinding
+  namespace: microservices
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: microservices-role
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: microservices

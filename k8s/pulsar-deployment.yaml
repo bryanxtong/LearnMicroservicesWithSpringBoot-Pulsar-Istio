@@ -1,0 +1,90 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pulsar
+  namespace: microservices
+  labels:
+    app: pulsar
+spec:
+  type: ClusterIP
+  ports:
+  - port: 6650
+    targetPort: 6650
+    protocol: TCP
+    name: pulsar
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  selector:
+    app: pulsar
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: pulsar
+  namespace: microservices
+spec:
+  serviceName: pulsar
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pulsar
+  template:
+    metadata:
+      labels:
+        app: pulsar
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      containers:
+      - name: pulsar
+        image: apachepulsar/pulsar:4.0.5
+        command: ["bin/pulsar"]
+        args: ["standalone", "--no-functions-worker"]
+        env:
+        - name: PULSAR_MEM
+          value: "-Xms512m -Xmx1536m -XX:MaxDirectMemorySize=512m"
+        - name: PULSAR_PREFIX_managedLedgerDefaultEnsembleSize
+          value: "1"
+        - name: PULSAR_PREFIX_managedLedgerDefaultWriteQuorum
+          value: "1"
+        - name: PULSAR_PREFIX_managedLedgerDefaultAckQuorum
+          value: "1"
+        ports:
+        - containerPort: 6650
+          name: pulsar
+        - containerPort: 8080
+          name: http
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /admin/v2/clusters
+            port: 8080
+          initialDelaySeconds: 120
+          periodSeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /admin/v2/clusters
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 10
+        volumeMounts:
+        - name: pulsar-data
+          mountPath: /pulsar/data
+  volumeClaimTemplates:
+  - metadata:
+      name: pulsar-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Gi

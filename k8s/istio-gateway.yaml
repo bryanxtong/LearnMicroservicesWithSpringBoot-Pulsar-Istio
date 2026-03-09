@@ -1,0 +1,67 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: microservices-gateway
+  namespace: microservices
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: microservices-routes
+  namespace: microservices
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - microservices-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /challenges
+    route:
+    - destination:
+        host: multiplication.microservices.svc.cluster.local
+        port:
+          number: 8080
+  - match:
+    - uri:
+        prefix: /attempts
+    route:
+    - destination:
+        host: multiplication.microservices.svc.cluster.local
+        port:
+          number: 8080
+  - match:
+    - uri:
+        prefix: /users
+    route:
+    - destination:
+        host: multiplication.microservices.svc.cluster.local
+        port:
+          number: 8080
+  - match:
+    - uri:
+        exact: /leaders
+    route:
+    - destination:
+        host: gamification.microservices.svc.cluster.local
+        port:
+          number: 8081
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: challenges-frontend.microservices.svc.cluster.local
+        port:
+          number: 80
