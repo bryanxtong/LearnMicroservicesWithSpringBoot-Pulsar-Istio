@@ -27,6 +27,14 @@ spec:
   http:
   - match:
     - uri:
+        prefix: /zipkin
+    route:
+    - destination:
+        host: zipkin
+        port:
+          number: 9411
+  - match:
+    - uri:
         prefix: /challenges
     route:
     - destination:
