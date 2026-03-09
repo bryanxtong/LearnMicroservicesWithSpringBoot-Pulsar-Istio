@@ -10,7 +10,7 @@ This project demonstrates a cloud-native microservices architecture using Kubern
 
 ## Technology Stack
 
-- **Spring Boot 4.0.2** with Spring Cloud 2025.1.0
+- **Spring Boot 4.0.2** with Spring Cloud 2025.1.1
 - **Kubernetes** for container orchestration
 - **Istio** service mesh for traffic management, security, and observability
 - **Apache Pulsar** for event-driven messaging
@@ -152,6 +152,15 @@ istioctl install --set profile=default -y
 ```
 
 3. Configure Istio Gateway for kind (hostPort mode):
+```bash
+# Apply hostPort configuration
+kubectl apply -f istio-gateway-hostport.yaml
+
+# Change Service to ClusterIP
+kubectl apply -f istio-gateway-service.yaml
+```
+
+Alternatively, you can use kubectl patch commands:
 ```bash
 # Patch Istio Gateway to use hostPort
 kubectl patch deployment istio-ingressgateway -n istio-system --type=json -p='[{"op":"replace","path":"/spec/template/spec/containers/0/ports","value":[{"containerPort":15021,"protocol":"TCP"},{"containerPort":8080,"hostPort":80,"protocol":"TCP"},{"containerPort":8443,"hostPort":443,"protocol":"TCP"}]}]'
