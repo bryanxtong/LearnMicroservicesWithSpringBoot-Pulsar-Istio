@@ -1,4 +1,4 @@
-# Learn Microservices with Spring Boot 3 - Kubernetes and Istio Edition
+# Learn Microservices with Spring Boot - Kubernetes and Istio Edition
 
 This repository demonstrates a modern microservices architecture using Spring Boot 3, Kubernetes, and Istio service mesh. It includes centralized logging with Apache Pulsar and distributed tracing with Zipkin.
 
