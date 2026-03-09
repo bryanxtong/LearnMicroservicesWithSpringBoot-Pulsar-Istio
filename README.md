@@ -1,6 +1,6 @@
 # Learn Microservices with Spring Boot - Kubernetes and Istio Edition
 
-This repository demonstrates a modern microservices architecture using Spring Boot 3, Kubernetes, and Istio service mesh. It includes centralized logging with Apache Pulsar and distributed tracing with Zipkin.
+This repository demonstrates a modern microservices architecture using Spring Boot, Kubernetes, and Istio service mesh. It includes centralized logging with Apache Pulsar and distributed tracing with Zipkin.
 
 ## Architecture Overview
 
@@ -10,7 +10,7 @@ This project demonstrates a cloud-native microservices architecture using Kubern
 
 ## Technology Stack
 
-- **Spring Boot 4.0.2** with Spring Cloud 2025.1.1
+- **Spring Boot 4.0.2** with Spring Cloud 2025.1.0
 - **Kubernetes** for container orchestration
 - **Istio** service mesh for traffic management, security, and observability
 - **Apache Pulsar** for event-driven messaging
@@ -21,16 +21,60 @@ This project demonstrates a cloud-native microservices architecture using Kubern
 
 ## Key Architecture Components
 
-| Component | Implementation |
-|-----------|----------------|
-| Service Discovery | Kubernetes Service + Istio |
-| Configuration Management | Kubernetes ConfigMap + Spring Cloud Kubernetes |
-| API Gateway | Istio Ingress Gateway |
-| Load Balancing | Istio Envoy Sidecar |
-| Circuit Breaker | Istio DestinationRule |
-| Distributed Tracing | Istio + Zipkin |
-| Message Queue | Apache Pulsar |
-| Security | Istio mTLS (mutual TLS) |
+| Component | Implementation | Description |
+|-----------|----------------|-------------|
+| Service Discovery | Kubernetes Service | Provides service registration and DNS resolution |
+| Configuration Management | Kubernetes ConfigMap + Spring Cloud Kubernetes | Centralized configuration with auto-reload |
+| API Gateway | Istio Ingress Gateway | External traffic entry point |
+| Routing | Istio VirtualService | Request routing rules and traffic splitting |
+| Load Balancing | DestinationRule (policy) + Envoy Sidecar (execution) | Defines algorithm (ROUND_ROBIN, etc.) and executes selection |
+| Circuit Breaker | DestinationRule (outlierDetection) | Automatic failure detection and ejection |
+| Distributed Tracing | Istio + Zipkin | Automatic trace propagation and collection |
+| Message Queue | Apache Pulsar | Event-driven messaging |
+| Security | Istio mTLS | Automatic mutual TLS between services |
+
+### How Istio Components Work Together
+
+```
+External Request
+    ↓
+Istio Ingress Gateway (entry point)
+    ↓
+VirtualService (routing: which service?)
+    ↓
+Kubernetes Service (service discovery: list of Pods)
+    ↓
+DestinationRule (load balancing policy: ROUND_ROBIN, LEAST_REQUEST, etc.)
+    ↓
+Envoy Sidecar (executes policy: selects specific Pod)
+    ↓
+Target Pod
+```
+
+### Component Responsibilities
+
+**VirtualService** - Routing rules
+- Path-based routing (`/challenges` → multiplication)
+- Header/method-based routing
+- Traffic splitting (canary, A/B testing)
+- Retry and timeout policies
+
+**DestinationRule** - Traffic policies after routing
+- Load balancing algorithm configuration
+- Connection pool settings
+- Circuit breaker (outlier detection)
+- TLS settings
+
+**Kubernetes Service** - Service discovery
+- Pod registration and health tracking
+- DNS resolution (`multiplication.microservices.svc.cluster.local`)
+- Stable virtual IP (ClusterIP)
+
+**Envoy Sidecar** - Policy execution
+- Intercepts all Pod traffic
+- Applies VirtualService and DestinationRule policies
+- Collects metrics, logs, and traces
+- Enforces mTLS encryption
 
 ## Features
 
