@@ -30,7 +30,7 @@ spec:
         prefix: /challenges
     route:
     - destination:
-        host: multiplication.microservices.svc.cluster.local
+        host: multiplication
         port:
           number: 8080
   - match:
@@ -38,7 +38,7 @@ spec:
         prefix: /attempts
     route:
     - destination:
-        host: multiplication.microservices.svc.cluster.local
+        host: multiplication
         port:
           number: 8080
   - match:
@@ -46,7 +46,7 @@ spec:
         prefix: /users
     route:
     - destination:
-        host: multiplication.microservices.svc.cluster.local
+        host: multiplication
         port:
           number: 8080
   - match:
@@ -54,7 +54,7 @@ spec:
         exact: /leaders
     route:
     - destination:
-        host: gamification.microservices.svc.cluster.local
+        host: gamification
         port:
           number: 8081
   - match:
@@ -62,6 +62,6 @@ spec:
         prefix: /
     route:
     - destination:
-        host: challenges-frontend.microservices.svc.cluster.local
+        host: challenges-frontend
         port:
           number: 80
