@@ -146,32 +146,28 @@ export PATH=$PWD/bin:$PATH
 # Windows: Download from https://github.com/istio/istio/releases
 ```
 
-2. Install Istio with default profile:
+2. Install Istio with IstioOperator (includes LoadBalancer configuration):
 ```bash
-istioctl install --set profile=default -y
+# Install Istio using IstioOperator configuration
+# This automatically configures Istio Ingress Gateway as LoadBalancer with proper selector
+istioctl install -f istio-operator.yaml -y
 ```
 
-3. Configure Istio Gateway for kind (hostPort mode):
-```bash
-# Apply hostPort configuration
-kubectl apply -f istio-gateway-hostport.yaml
-
-# Change Service to ClusterIP
-kubectl apply -f istio-gateway-service.yaml
-```
-
-Alternatively, you can use kubectl patch commands:
-```bash
-# Patch Istio Gateway to use hostPort
-kubectl patch deployment istio-ingressgateway -n istio-system --type=json -p='[{"op":"replace","path":"/spec/template/spec/containers/0/ports","value":[{"containerPort":15021,"protocol":"TCP"},{"containerPort":8080,"hostPort":80,"protocol":"TCP"},{"containerPort":8443,"hostPort":443,"protocol":"TCP"}]}]'
-
-# Change Service to ClusterIP
-kubectl patch svc istio-ingressgateway -n istio-system -p '{"spec":{"type":"ClusterIP"}}'
-```
-
-4. Wait for Istio to be ready:
+3. Wait for Istio to be ready:
 ```bash
 kubectl rollout status deployment/istio-ingressgateway -n istio-system
+```
+
+4. Install Metallb for LoadBalancer support:
+```bash
+# Install Metallb
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/main/config/manifests/metallb-native.yaml
+
+# Wait for Metallb to be ready
+kubectl wait --for=condition=ready pod -l app=metallb -n metallb-system --timeout=300s
+
+# Create IPAddressPool and L2Advertisement
+kubectl apply -f k8s/metallb-config.yaml
 ```
 
 5. Create namespace with Istio injection enabled:
@@ -179,7 +175,7 @@ kubectl rollout status deployment/istio-ingressgateway -n istio-system
 kubectl apply -f k8s/namespace.yaml
 ```
 
-### Step 3: Build Images
+### Step 6: Build Images
 
 Build Docker images for all services:
 
@@ -204,7 +200,7 @@ docker build -t challenges-frontend:1.0 .
 cd ..
 ```
 
-### Step 4: Load Images to kind (skip if using Docker Desktop)
+### Step 7: Load Images to kind (skip if using Docker Desktop)
 
 ```bash
 kind load docker-image multiplication:0.0.1-SNAPSHOT
@@ -213,7 +209,7 @@ kind load docker-image logs:0.0.1-SNAPSHOT
 kind load docker-image challenges-frontend:1.0
 ```
 
-### Step 5: Deploy to Kubernetes
+### Step 8: Deploy to Kubernetes
 
 ```bash
 # Create namespace first
@@ -238,7 +234,7 @@ kubectl apply -f k8s/istio-destination-rules.yaml
 kubectl apply -f k8s/istio-peer-auth.yaml
 ```
 
-### Step 6: Verify Deployment
+### Step 9: Verify Deployment
 
 ```bash
 # Check all pods are running
@@ -254,17 +250,26 @@ kubectl get virtualservice -n microservices
 
 ### Access the Application
 
-#### For kind cluster:
-Access the application at: `http://localhost`
+#### Using port-forward (Recommended for local development)
 
-#### For Docker Desktop Kubernetes:
-Get the Istio Ingress Gateway external IP:
+Since the project uses Metallb with LoadBalancer service, you need to use `kubectl port-forward` to access the application from your local machine:
+
+```bash
+# Start port-forward in a terminal
+kubectl port-forward -n istio-system svc/istio-ingressgateway 80:80
+```
+
+Then access the application at: `http://localhost`
+
+#### Metallb External IP (For reference)
+
+You can check the Metallb-assigned external IP:
 
 ```bash
 kubectl get svc istio-ingressgateway -n istio-system
 ```
 
-Access the API at: `http://<EXTERNAL-IP>/challenges`
+The external IP will be something like `172.20.255.1`, but it's only accessible from within the Docker network.
 
 ### API Endpoints
 
@@ -282,8 +287,15 @@ Access the API at: `http://<EXTERNAL-IP>/challenges`
 - For Docker Desktop: Images should be available automatically
 
 **Cannot access http://localhost:**
-- Verify Istio Gateway is using hostPort: `kubectl get pod -n istio-system -o yaml | grep hostPort`
+- Make sure port-forward is running: `kubectl port-forward -n istio-system svc/istio-ingressgateway 80:80`
 - Check if port 80 is already in use: `netstat -ano | findstr :80` (Windows) or `lsof -i :80` (macOS/Linux)
+- If port 80 is in use, use a different local port: `kubectl port-forward -n istio-system svc/istio-ingressgateway 8080:80` then access `http://localhost:8080`
+
+**Metallb not assigning external IP:**
+- Verify Metallb is installed: `kubectl get pods -n metallb-system`
+- Check IPAddressPool is created: `kubectl get ipaddresspool -n metallb-system`
+- Check L2Advertisement is created: `kubectl get l2advertisement -n metallb-system`
+- Verify Service has selector: `kubectl get svc istio-ingressgateway -n istio-system -o yaml | grep selector`
 
 **Pods not starting or stuck in Init:**
 - Check logs: `kubectl logs -n microservices <pod-name> -c <container-name>`
