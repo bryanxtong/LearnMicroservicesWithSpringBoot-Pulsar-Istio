@@ -1,0 +1,33 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Resources are applied in the order they appear below.
+resources:
+  # 1. Namespace – must exist before any namespaced resources.
+  - namespace.yaml
+
+  # 2. RBAC – grants ServiceAccounts permission to read ConfigMaps/Secrets.
+  - rbac.yaml
+
+  # 3. Istio security/auth configuration (peer authentication).
+  - istio-peer-auth.yaml
+
+  # 4. Istio gateway – defines Ingress gateway.
+  - istio-gateway.yaml
+
+  # 5. Istio destination rules – load‑balancing, circuit‑breaker policies.
+  - istio-destination-rules.yaml
+
+  # 6. Metallb configuration – provides LoadBalancer IPs.
+  - metallb-config.yaml
+
+  # 7. Core infrastructure services.
+  - pulsar-deployment.yaml
+  - pulsar-destinationrule.yaml
+  - zipkin-deployment.yaml
+
+  # 8. Application microservices.
+  - multiplication-deployment.yaml
+  - gamification-deployment.yaml
+  - logs-deployment.yaml
+  - challenges-frontend-deployment.yaml

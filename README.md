@@ -212,26 +212,13 @@ kind load docker-image challenges-frontend:1.0
 ### Step 8: Deploy to Kubernetes
 
 ```bash
-# Create namespace first
-kubectl apply -f k8s/namespace.yaml
+# Apply all resources (Namespace, RBAC, infrastructure, microservices, and Istio config) in one step
+kubectl apply -k k8s
+```
 
-# Deploy RBAC for ConfigMap access
-kubectl apply -f k8s/rbac.yaml
-
-# Deploy infrastructure services
-kubectl apply -f k8s/pulsar-deployment.yaml
-kubectl apply -f k8s/zipkin-deployment.yaml
-
-# Deploy microservices
-kubectl apply -f k8s/multiplication-deployment.yaml
-kubectl apply -f k8s/gamification-deployment.yaml
-kubectl apply -f k8s/logs-deployment.yaml
-kubectl apply -f k8s/challenges-frontend-deployment.yaml
-
-# Deploy Istio configurations
-kubectl apply -f k8s/istio-gateway.yaml
-kubectl apply -f k8s/istio-destination-rules.yaml
-kubectl apply -f k8s/istio-peer-auth.yaml
+# If you prefer to use Metallb for LoadBalancer services, ensure Metallb is installed first:
+```bash
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/main/config/manifests/metallb-native.yaml
 ```
 
 ### Step 9: Verify Deployment
