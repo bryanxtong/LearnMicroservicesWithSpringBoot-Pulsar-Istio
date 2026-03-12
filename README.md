@@ -93,6 +93,16 @@ Target Pod
 2. **gamification** - Gamification and leaderboard service (port 8081)
 3. **logs** - Centralized log processing service (port 8580)
 
+## Frontend
+
+**challenges-frontend** - React frontend with Vite
+
+- Built with Vite for fast development (1-2s startup vs 30-60s with CRA)
+- Modern React Hooks pattern
+- Real-time leaderboard updates
+- Instant hot module replacement (HMR)
+- See [challenges-frontend/README.md](challenges-frontend/README.md) for details
+
 ## Running on Kubernetes with Istio
 
 ### Prerequisites

@@ -1,70 +1,158 @@
-# Getting Started with Create React App
+# Challenges Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A fast, modern React frontend for the multiplication challenges game, built with Vite and React Hooks.
+
+## Overview
+
+This is a React application that provides a user interface for solving multiplication challenges. It communicates with backend services for challenges and gamification features.
+
+## Tech Stack
+
+- **Vite** - Lightning-fast build tool and dev server
+- **React 19.2.4** - Modern UI library with Hooks
+- **React Hooks** - Functional components with state management
+- **Nginx** - Production web server
+- **Docker** - Containerization
+- **Kubernetes** - Orchestration
+
+## Features
+
+- Fast development server (1-2s startup vs 30-60s with CRA)
+- Instant hot module replacement (HMR)
+- Modern React Hooks pattern
+- Memory leak fixes (proper cleanup in useEffect)
+- Responsive UI for solving math challenges
+- Real-time leaderboard updates
+- Attempt history tracking
 
 ## Available Scripts
 
-In the project directory, you can run:
+### Development
 
-### `npm start`
+```bash
+npm install
+npm run dev
+```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Runs the app in development mode with Vite dev server on [http://localhost:3000](http://localhost:3000).
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+The page will reload when you make changes. You'll see build errors and lint warnings in the console.
 
-### `npm test`
+### Production Build
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+npm run build
+```
 
-### `npm run build`
+Builds the app for production to the `dist` folder. The build is optimized and minified.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Preview Production Build
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```bash
+npm run preview
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Locally preview the production build.
 
-### `npm run eject`
+## Project Structure
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```
+src/
+├── components/
+│   ├── ChallengeComponent.js      # Main challenge form
+│   ├── LastAttemptsComponent.js   # Attempt history
+│   └── LeaderBoardComponent.js    # Leaderboard with auto-refresh
+├── services/
+│   ├── ChallengeApiClient.js      # Challenge API calls
+│   └── GameApiClient.js           # Gamification API calls
+├── App.js                          # Root component
+├── index.js                        # Entry point
+└── index.css                       # Global styles
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## API Integration
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+The frontend communicates with two backend services:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- **Challenges Service** (localhost:8080)
+  - `/challenges/random` - Get random challenge
+  - `/attempts` - Submit guess and get attempts
+  - `/users` - Get user aliases
+
+- **Gamification Service** (localhost:8081)
+  - `/leaders` - Get leaderboard
+
+## Docker Deployment
+
+Build the Docker image:
+
+```bash
+docker build -t challenges-frontend:1.0 .
+```
+
+Run locally:
+
+```bash
+docker run -p 3000:80 challenges-frontend:1.0
+```
+
+## Kubernetes Deployment
+
+Deploy to Kubernetes:
+
+```bash
+kubectl apply -f ../k8s/challenges-frontend-deployment.yaml
+```
+
+The deployment includes:
+- ConfigMap for Nginx configuration
+- Deployment with 1 replica
+- Service for internal communication
+- Istio sidecar injection
+
+## Recent Changes (Vite Migration)
+
+Migrated from Create React App to Vite:
+
+- ✅ Faster dev server (30-60s → 1-2s)
+- ✅ Instant HMR (<1s)
+- ✅ Modern React Hooks pattern
+- ✅ Fixed memory leak in LeaderBoardComponent
+- ✅ Smaller bundle size
+- ✅ Better build performance
+
+## Component Details
+
+### ChallengeComponent
+Main component that displays a multiplication challenge and handles user input.
+
+**State:**
+- `a`, `b` - Challenge factors
+- `formData` - User alias and guess
+- `message` - Feedback message
+- `lastAttempts` - User's attempt history
+
+### LeaderBoardComponent
+Displays top players with auto-refresh every 5 seconds.
+
+**Features:**
+- Auto-refresh with proper cleanup (no memory leaks)
+- User alias mapping
+- Badge display
+- Error handling
+
+### LastAttemptsComponent
+Shows user's recent attempts with correct/incorrect indicators.
+
+## Development Tips
+
+- Use `npm run dev` for fast development
+- Changes are reflected instantly with HMR
+- Check browser console for errors
+- Use React DevTools for component debugging
 
 ## Learn More
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- [Vite Documentation](https://vitejs.dev/)
+- [React Documentation](https://react.dev/)
+- [React Hooks Guide](https://react.dev/reference/react/hooks)
