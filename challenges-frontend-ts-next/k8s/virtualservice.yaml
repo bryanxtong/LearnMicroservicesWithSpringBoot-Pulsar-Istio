@@ -1,0 +1,59 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: microservices-routes
+  namespace: microservices
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - microservices-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /zipkin
+    route:
+    - destination:
+        host: zipkin
+        port:
+          number: 9411
+  - match:
+    - uri:
+        prefix: /challenges
+    route:
+    - destination:
+        host: multiplication
+        port:
+          number: 8080
+  - match:
+    - uri:
+        prefix: /attempts
+    route:
+    - destination:
+        host: multiplication
+        port:
+          number: 8080
+  - match:
+    - uri:
+        prefix: /users
+    route:
+    - destination:
+        host: multiplication
+        port:
+          number: 8080
+  - match:
+    - uri:
+        exact: /leaders
+    route:
+    - destination:
+        host: gamification
+        port:
+          number: 8081
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: challenges-frontend-next
+        port:
+          number: 80
